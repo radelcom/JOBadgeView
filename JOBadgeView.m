@@ -20,7 +20,6 @@
 
 @implementation JOBadgeView
 
-@synthesize badgeValue = _badgeValue;
 @synthesize fillColor = _fillColor;
 @synthesize borderColor = _borderColor;
 @synthesize showBorder = _showBorder;
@@ -50,34 +49,26 @@
 	[self setBadgeNeedsDisplay];
 }
 
-- (NSString *)text {
-	[self doesNotRecognizeSelector:_cmd];
-	return nil;
-}
-
 - (void)setText:(NSString*)text {
-	[self doesNotRecognizeSelector:_cmd];
-}
-
-- (void)setBadgeValue:(NSString *)badgeValue {
-	[super setText:badgeValue];
+	[super setText:text];
 	
-    [_badgeValue release];
-    _badgeValue = [badgeValue copy];
-        
 	[self setBadgeNeedsDisplay];
 }
 
 - (void)setFillColor:(UIColor *)fillColor {
-    [_fillColor release];
-    _fillColor = [fillColor copy];
+	if (_fillColor != fillColor) {
+		[_fillColor release];
+		_fillColor = [fillColor copy];
+	}
     
     [self setBadgeNeedsDisplay];
 }
 
 - (void)setBorderColor:(UIColor *)borderColor {
-    [_borderColor release];
-    _borderColor = [borderColor copy];
+	if (_borderColor != borderColor) {
+		[_borderColor release];
+		_borderColor = [borderColor copy];
+	}
     
     [self setBadgeNeedsDisplay];
 }
@@ -89,11 +80,11 @@
 }
 
 - (void)setBadgeNeedsDisplay {
-	CGSize size = [_badgeValue sizeWithFont:self.font];    
+	CGSize size = [self.text sizeWithFont:self.font];
     CGFloat radius = ceil((size.height)/2.0);
     CGFloat adjustment = ceil(size.width-radius) > 0 ? ceil(size.width-radius) : 0;
     self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, (2*radius)+adjustment+PADDING, size.height+PADDING);
-	self.hidden = [_badgeValue length] == 0;
+	self.hidden = [self.text length] == 0;
 	
 	self.layer.shadowOpacity = 0.5;
 	self.layer.masksToBounds = NO;
@@ -104,7 +95,6 @@
 
 #pragma mark - PRIVATE
 - (void)initialize {
-    self.adjustsFontSizeToFitWidth = YES;
     self.font = [UIFont boldSystemFontOfSize:14];
     self.textColor = [UIColor whiteColor];
     self.backgroundColor = [UIColor clearColor];
@@ -128,6 +118,8 @@
 - (void)drawRect:(CGRect)rect {
     // Drawing code.
 	CGContextRef context = UIGraphicsGetCurrentContext();
+	CGContextSaveGState(context);
+	
     CGFloat radius = ceilf((self.bounds.size.height/2.0)-6);
 	CGFloat minx = ceilf(CGRectGetMinX(self.bounds)+6), midx = ceilf(CGRectGetMidX(self.bounds)), maxx = ceilf(CGRectGetMaxX(self.bounds)-6);
 	CGFloat miny = ceilf(CGRectGetMinY(self.bounds)+6), midy = ceilf(CGRectGetMidY(self.bounds)), maxy = ceilf(CGRectGetMaxY(self.bounds)-6);
@@ -138,8 +130,6 @@
 	CGContextAddArcToPoint(context, maxx, maxy, midx, maxy, radius);
 	CGContextAddArcToPoint(context, minx, maxy, minx, midy, radius);
     
-    CGContextSaveGState(context);
-	
     // fill
     if (_fillColor) {
         CGContextSetFillColorWithColor(context, _fillColor.CGColor);
@@ -153,14 +143,10 @@
         CGContextSetLineWidth(context, ceil((self.bounds.size.height-PADDING)*0.11));
         CGContextSetStrokeColorWithColor(context, _fillColor.CGColor);
     }
-    
     CGContextDrawPath(context, kCGPathFillStroke);
-    CGContextRestoreGState(context);
-    
+        
     // gloss
     if (_showGloss) {
-        CGContextSaveGState(context);
-
         CGFloat locations[2] = { 0.0, 1.0 };
         CGFloat components[8] = {
             1.0, 1.0, 1.0, 0.8,
@@ -183,9 +169,10 @@
     	
         CGColorSpaceRelease(cspace);
         CGGradientRelease(gradient);
-        CGContextRestoreGState(context);
     }
     
+	CGContextRestoreGState(context);
+	
     if (_autoPositioning) {
         [self autoPositionFromSuperView];
     }
@@ -194,7 +181,6 @@
 }
 
 - (void)dealloc {
-    [_badgeValue release];
     [_fillColor release];
     [_borderColor release];
     [super dealloc];

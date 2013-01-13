@@ -8,8 +8,6 @@
 
 
 @interface JOBadgeView : UILabel {
-    NSString*       _badgeValue;
-    
     UIColor*        _fillColor;
     UIColor*        _borderColor;
     
@@ -18,8 +16,6 @@
     BOOL            _showShadow;
     BOOL            _autoPositioning;
 }
-
-@property (nonatomic, copy) NSString* badgeValue;
 
 @property (nonatomic, copy) UIColor* fillColor;
 @property (nonatomic, copy) UIColor* borderColor;
